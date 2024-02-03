@@ -6,25 +6,17 @@ import profileRoutes from './routes/profile';
 import fs from "fs";
 import https from "https";
 import 'dotenv/config';
-// import cookieParser from "cookie-parser";
 import { dirname } from "node:path";
 import { PrismaClient } from '@prisma/client'
 import { PrismaSessionStore } from '@quixo3/prisma-session-store';
 import expressSession from 'express-session';
-import initSession from './routes/initSession';
-const cors = require('cors');
-var cookieParser = require("cookie-parser");
+import isAuthenticated from './middleware/authMiddleware';
+// var cookieParser = require("cookie-parser");
 
 
-const prisma = new PrismaClient()
 
 const app = express();
 const port = process.env.PORT || 4000;
-
-// app.use(cors({
-//   origin: true,
-//   credentials: true,
-// }));
 
 app.use(
   expressSession({
@@ -39,7 +31,7 @@ app.use(
     },
     secret: 'a santa at nasa',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: new PrismaSessionStore(
       new PrismaClient(),
       {
@@ -50,7 +42,7 @@ app.use(
     )
   })
 );
-app.use(cookieParser());
+// app.use(cookieParser());
 app.use((_, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://localhost:3000');
   res.header('Access-Control-Allow-Headers', 'content-type');
@@ -60,27 +52,14 @@ app.use((_, res, next) => {
   next();
 })
 
-app.set('trust proxy', 1)
-
-
-
-// app.use(function (req, res, next) {
-//   // @ts-ignore
-//   req.session.test = "test";
-//   next();
-// });
-// if (process.env.NODE_ENV !== "production") {
-
-// }
-// allow cors from all - no hustle and never safe
+// app.set('trust proxy', 1)
 
 app.use(express.json()); // Add this line to enable JSON parsing in the request body
 // app.use('/', initSession)
-
 app.use('/api/auth', authRoutes);
-app.use('/api/books', bookRoutes);
-app.use('/api/bookshelf', bookshelfRoutes);
-app.use('/api/profile', profileRoutes);
+app.use('/api/books', isAuthenticated, bookRoutes);
+app.use('/api/bookshelf', isAuthenticated, bookshelfRoutes);
+app.use('/api/profile', isAuthenticated, profileRoutes);
 
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

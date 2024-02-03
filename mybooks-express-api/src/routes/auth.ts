@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 // import { authenticateUser } from '../controllers/auth.controller';
 import { OAuth2Client } from "google-auth-library";
 import { PrismaClient } from '@prisma/client'
-import { User } from '../models/user';
+import { UserSession } from '../models/user';
 const router = Router();
 const prisma = new PrismaClient()
 
@@ -13,12 +13,11 @@ const googleClient = new OAuth2Client({
 
 declare module 'express-session' {
     interface SessionData {
-        user: User
+        user: UserSession
     }
 }
 router.post("/signin", async (req: Request, res: Response) => {
     const { token } = req.body;
-
     const ticket = await googleClient.verifyIdToken({
         idToken: token,
         audience: `${process.env.GOOGLE_CLIENT_ID}`,
@@ -29,7 +28,6 @@ router.post("/signin", async (req: Request, res: Response) => {
         console.error('Email is null from paypload.');
         return;
     }
-    console.log(payload);
     let user = await prisma.users.findFirst({ where: { user_email: payload?.email } });
     if (!user) {
         user = await prisma.users.create({
@@ -46,14 +44,12 @@ router.post("/signin", async (req: Request, res: Response) => {
     req.session.user = {
         userId: user.user_id,
         userEmail: user.user_email,
-        userFirstName: user.user_first_name,
-        userFamilyName: user.user_family_name,
-        userFullName: user.user_full_name,
-        userPicture: user.user_picture
     }
+    // // @ts-ignore
+    // req.session.test = 'asd';
     console.log(req.session);
     console.log(req.sessionID);
-    res.status(200).send('login success');
+    res.status(200).send(req.session.user);
 
 });
 
@@ -65,11 +61,12 @@ router.get("/signout", (req: Request, res: Response) => {
             res.status(500).json({ error: "Failed to sign out" });
         } else {
             console.log('Sign out successful')
-            // res.clearCookie("connect.sid"); // Clear the session cookie
-            res.status(200).json({ message: "Signed out successfully" });
+            res.clearCookie('connect.sid', { path: '/', domain: 'localhost', httpOnly: true, sameSite: 'lax', secure: true});
+            res.end();
         }
         console.log(req.session);
     });
+
 });
 
 export default router;

@@ -7,9 +7,11 @@ import { StringifyOptions } from 'querystring';
 import axios from 'axios';
 
 const initUser = {
-    first_name: '',
-    email: '',
-    user_id: 0
+    user_first_name: '',
+    user_email: '',
+    user_id: 0,
+    user_picture: '',
+    date_added: ''
 }
 type User = typeof initUser;
 
@@ -20,9 +22,9 @@ export default function Welcome() {
     const router = useRouter();
 
     useEffect(() => {
-        const result = axios.get("https://localhost:4000/auth/test", {
+        axios.get("https://localhost:4000/api/profile", {
             withCredentials: true
-            
+
         }).then(res => {
             console.log(res);
             userSetData(res.data);
@@ -34,23 +36,10 @@ export default function Welcome() {
     return (
         <>
             {userData &&
-                <h1> Welcome {userData?.user_id}</h1>
+            <h1 className="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Welcome {userData?.user_first_name}</h1>
             }
         </>
     );
 
 
-
-    // if (session) {
-    //     return (
-    //         <>
-    //             <div className="content-center">
-    //                 <h2 className="text-4xl font-extrabold dark:text-white">Welcome to mybooks, {session?.user?.name}</h2>
-    //             </div>
-    //         </>
-    //     )
-    // }
-    // else {
-    //     router.push("/");
-    // }
 }
