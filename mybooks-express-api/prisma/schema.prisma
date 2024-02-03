@@ -8,26 +8,26 @@ datasource db {
 }
 
 model books {
-  book_id       String          @id @db.VarChar(100)
-  author        String?         @db.VarChar(100)
-  title         String?         @db.VarChar(100)
-  subtitle      String?         @db.VarChar(100)
-  description   String?         @db.VarChar(1000)
-  release_year  Int?
-  bookshelf_books bookshelf_books[]
+  book_id         String           @id @db.VarChar(100)
+  author          String?          @db.VarChar(100)
+  title           String?          @db.VarChar(100)
+  subtitle        String?          @db.VarChar(100)
+  description     String?          @db.VarChar(1000)
+  release_year    Int?
+  bookshelf_books bookshelf_books?
 }
 
 model bookshelf_books {
-  bookshelf_books_id Int          @id @default(autoincrement())
+  bookshelf_books_id Int            @id @default(autoincrement())
   bookshelf_id       Int
-  book_id          String       @unique @db.VarChar(100)
-  book_thoughts    String?      @db.VarChar(1000)
-  book_private     Boolean?
-  thoughts_private Boolean?
-  book_status      String       @db.VarChar(100)
-  date_added       DateTime     @default(now())
-  date_modified    DateTime     @updatedAt 
-  books            books        @relation(fields: [book_id], references: [book_id], onDelete: NoAction, onUpdate: NoAction, map: "bookshelf_books_books_FK")
+  book_id            String         @unique @db.VarChar(100)
+  book_thoughts      String?        @db.VarChar(1000)
+  book_private       Boolean?
+  thoughts_private   Boolean?
+  book_status        String         @db.VarChar(100)
+  date_added         DateTime       @default(now())
+  date_modified      DateTime       @updatedAt
+  books              books          @relation(fields: [book_id], references: [book_id], onDelete: NoAction, onUpdate: NoAction, map: "bookshelf_books_books_FK")
   user_bookshelf     user_bookshelf @relation(fields: [bookshelf_id], references: [bookshelf_id], onDelete: NoAction, onUpdate: NoAction, map: "bookshelf_books_user_bookshelf_FK")
 
   @@index([book_id], map: "bookshelf_books_books_FK")
@@ -35,48 +35,46 @@ model bookshelf_books {
 }
 
 model user_bookshelf {
-  bookshelf_id    Int             @id @default(autoincrement())
-  bookshelf_name  String          @db.VarChar(100)
-  user_id       Int
-  date_added       DateTime     @default(now())
-  date_modified    DateTime     @updatedAt 
+  bookshelf_id    Int               @id @default(autoincrement())
+  bookshelf_name  String            @db.VarChar(100)
+  user_id         Int
+  date_added      DateTime          @default(now())
+  date_modified   DateTime          @updatedAt
   bookshelf_books bookshelf_books[]
-  users         users           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "user_bookshelf_users_FK")
+  users           users             @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "user_bookshelf_users_FK")
 
   @@index([user_id], map: "user_bookshelf_users_FK")
 }
 
 model users {
-  user_id        Int            @id @default(autoincrement())
-  user_full_name String?        @db.VarChar(100)
-  user_email     String         @db.VarChar(100)
-  date_added       DateTime     @default(now())
+  user_id          Int              @id @default(autoincrement())
+  user_first_name  String?          @db.VarChar(100)
+  user_family_name String?          @db.VarChar(100)
+  user_full_name   String?          @db.VarChar(100)
+  user_picture     String?          @db.VarChar(500)
+  user_email       String           @db.VarChar(100)
+  date_added       DateTime         @default(now())
+  oauth_provider   String?          @db.VarChar(20)
   user_bookshelf   user_bookshelf[]
-  oauth_provider String?         @db.VarChar(20)
 }
 
 model User {
-  id           String    @id @unique
-
-  auth_session Session[]
-  key          Key[]
+  id  String @id @unique
+  key Key[]
 }
 
 model Session {
-  id             String @id @unique
-  user_id        String
-  active_expires BigInt
-  idle_expires   BigInt
-  user           User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
-
-  @@index([user_id])
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
 }
 
 model Key {
   id              String  @id @unique
   hashed_password String?
   user_id         String
-  user            User    @relation(references: [id], fields: [user_id], onDelete: Cascade)
+  user            User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
 }

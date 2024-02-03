@@ -1,91 +1,75 @@
-import { auth, googleAuth } from "../auth/lucia.ts";
 import { Router, Request, Response } from 'express';
-import { parseCookie } from "lucia/utils";
-import { OAuthRequestError } from "@lucia-auth/oauth";
-
+// import { authenticateUser } from '../controllers/auth.controller';
+import { OAuth2Client } from "google-auth-library";
+import { PrismaClient } from '@prisma/client'
+import { User } from '../models/user';
 const router = Router();
+const prisma = new PrismaClient()
 
-router.get("/login/google", async (req, res) => {
-	const [url, state] = await googleAuth.getAuthorizationUrl();
-	res.cookie("google_oauth_state", state, {
-		httpOnly: true,
-		secure: process.env.NODE_ENV === "production",
-		path: "/",
-		maxAge: 60 * 60 * 1000 // 1 hour
-	});
-	return res.status(302).setHeader("Location", url.toString()).end();
+
+const googleClient = new OAuth2Client({
+    clientId: `${process.env.GOOGLE_CLIENT_ID}`,
 });
 
-router.get("/login/google/callback", async (req, res) => {
-	const cookies = parseCookie(req.headers.cookie ?? "");
-	const storedState = cookies.google_oauth_state;
-	const state = req.query.state;
-	const code = req.query.code;
-	// validate state
-	if (
-		!storedState ||
-		!state ||
-		storedState !== state ||
-		typeof code !== "string"
-	) {
-		return res.sendStatus(400);
-	}
-	try {
-		const { getExistingUser, googleUser, createUser } =
-			await googleAuth.validateCallback(code);
+declare module 'express-session' {
+    interface SessionData {
+        user: User
+    }
+}
+router.post("/signin", async (req: Request, res: Response) => {
+    const { token } = req.body;
 
-		const getUser = async () => {
-			const existingUser = await getExistingUser();
-			if (existingUser) return existingUser;
-			const user = await createUser({
-				attributes: {
-					username: googleUser.email
-				}
-			});
-			return user;
-		};
+    const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: `${process.env.GOOGLE_CLIENT_ID}`,
+    });
 
-		const user = await getUser();
-		const session = await auth.createSession({
-			userId: user.userId,
-			attributes: {}
-		});
-		const authRequest = auth.handleRequest(req, res);
-		authRequest.setSession(session);
-		return res.status(302).setHeader("Location", "/").end();
-	} catch (e) {
-		if (e instanceof OAuthRequestError) {
-			// invalid code
-			return res.sendStatus(400);
-		}
-		return res.sendStatus(500);
-	}
+    const payload = ticket.getPayload();
+    if (!payload?.email) {
+        console.error('Email is null from paypload.');
+        return;
+    }
+    console.log(payload);
+    let user = await prisma.users.findFirst({ where: { user_email: payload?.email } });
+    if (!user) {
+        user = await prisma.users.create({
+            data: {
+                user_email: payload?.email,
+                user_first_name: payload?.given_name,
+                user_family_name: payload?.family_name,
+                user_full_name: payload?.name,
+                user_picture: payload?.picture,
+                oauth_provider: 'Google'
+            }
+        });
+    }
+    req.session.user = {
+        userId: user.user_id,
+        userEmail: user.user_email,
+        userFirstName: user.user_first_name,
+        userFamilyName: user.user_family_name,
+        userFullName: user.user_full_name,
+        userPicture: user.user_picture
+    }
+    console.log(req.session);
+    console.log(req.sessionID);
+    res.status(200).send('login success');
+
 });
 
-router.post("/logout", async (req, res) => {
-	const authRequest = auth.handleRequest(req, res);
-	const session = await authRequest.validate();
-	if (!session) {
-		return res.sendStatus(401);
-	}
-	await auth.invalidateSession(session.sessionId);
-	authRequest.setSession(null);
-	// redirect back to login page
-	return res.status(302).setHeader("Location", "/login").end();
-});
 
-router.get("/user", async (req, res) => {
-	const authRequest = auth.handleRequest(req, res);
-	const session = await authRequest.validate();
-	if (session) {
-		const user = session.user;
-		const username = user.username;
-		// ...c
-		console.log(username);
-		console.log(user);
-	}
-	// ...
+router.get("/signout", (req: Request, res: Response) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error(`Failed to sign out: ${err}`)
+            res.status(500).json({ error: "Failed to sign out" });
+        } else {
+            console.log('Sign out successful')
+            // res.clearCookie("connect.sid"); // Clear the session cookie
+            res.status(200).json({ message: "Signed out successfully" });
+        }
+        console.log(req.session);
+    });
 });
-
 
 export default router;
