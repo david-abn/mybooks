@@ -1,38 +1,56 @@
 'use client';
-import { useSession } from 'next-auth/react';
 import { redirect } from 'next/dist/server/api-utils';
 import React from 'react';
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react';
+import { StringifyOptions } from 'querystring';
+import axios from 'axios';
 
+const initUser = {
+    first_name: '',
+    email: '',
+    user_id: 0
+}
+type User = typeof initUser;
 
 export default function Welcome() {
-    const [data, setData] = useState(null)
+    const [userData, userSetData] = useState<User>()
     const [isLoading, setLoading] = useState(true)
 
-    const { data: session } = useSession();
-    const router = useRouter()
+    const router = useRouter();
 
     useEffect(() => {
-        fetch('https://localhost:3000/api/profile-data')
-            .then((res) => res.json())
-            .then((data) => {
-                setData(data)
-                setLoading(false)
-            })
+        const result = axios.get("https://localhost:4000/auth/test", {
+            withCredentials: true
+            
+        }).then(res => {
+            console.log(res);
+            userSetData(res.data);
+        });
+        setLoading(false);
+
     }, [])
 
+    return (
+        <>
+            {userData &&
+                <h1> Welcome {userData?.user_id}</h1>
+            }
+        </>
+    );
 
-    if (session) {
-        return (
-            <>
-                <div className="content-center">
-                    <h2 className="text-4xl font-extrabold dark:text-white">Welcome to mybooks, {session?.user?.name}</h2>
-                </div>
-            </>
-        )
-    }
-    else {
-        router.push("/");
-    }
+
+
+    // if (session) {
+    //     return (
+    //         <>
+    //             <div className="content-center">
+    //                 <h2 className="text-4xl font-extrabold dark:text-white">Welcome to mybooks, {session?.user?.name}</h2>
+    //             </div>
+    //         </>
+    //     )
+    // }
+    // else {
+    //     router.push("/");
+    // }
 }

@@ -10,7 +10,7 @@ export default function Hero() {
                     Never forget what you have read again
                 </h3>
 
-                <button className="bg-white font-bold rounded-full py-4 px-8 shadow-lg uppercase tracking-wider">
+                <button className="bg-black font-bold rounded-full py-4 px-8 shadow-lg uppercase tracking-wider">
                     Login to get started
                 </button>
             </div>
