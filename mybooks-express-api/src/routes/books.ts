@@ -7,12 +7,13 @@ const prisma = new PrismaClient()
 
 const router = Router();
 
+const bookStatusOptions = /\b(reading|finished|not_started)\b/;
 const bookValidationRules = [
     body('title').notEmpty().escape().withMessage('Title is required.'),
     body('release_year').escape().isNumeric().withMessage('Release year should be number.'),
     body('author').isString().withMessage("Author should be a string."),
     body('book_thoughts').isString().escape().withMessage('Book Thoughts should be a string'),
-    body('book_status').isString().withMessage('Status should be a string'),
+    body('book_status').isString().matches(bookStatusOptions).withMessage('Status should be a string and be one of reading|finished|plan to read'),
     body('thoughts_private').isBoolean().withMessage('Privacy should be a boolean.'),
     body('book_private').isBoolean().withMessage('Privacy should be a boolean.'),
     body('bookshelf_id').isNumeric().withMessage('Bookshelf id should be a number.')
@@ -45,12 +46,15 @@ async function addBook(book: Book) {
     }
 }
 
-
 /**
  * POST request for adding a new book
  * @param {array} bookValidationRules - Rules to sanitize and validate user input
  */
 router.post('/new_book', bookValidationRules, async (req: Request, res: Response) => {
+    const userId = req.session.user?.userId;
+    if (!userId) {
+        return res.status(401).send('Unauthorized');
+    }
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -81,6 +85,7 @@ router.post('/new_book', bookValidationRules, async (req: Request, res: Response
             data: {
                 book_id: book.book_id,
                 bookshelf_id: book.bookshelf_id,
+                user_id: userId,
                 book_thoughts: book.book_thoughts,
                 book_private: book.book_private,
                 thoughts_private: book.thoughts_private,
@@ -149,12 +154,16 @@ async function getBookshelfId(bookshelfName: string, userId: number) {
  * @query_param {number} bookshelf_name - bookshelf name to retrieve books from
  */
 router.get('/', async (req: Request, res: Response) => {
+    const userId = req.session.user?.userId;
+    if (!userId) {
+        return res.status(401).send('Unauthorized');
+    }
+
     const bookshelfName: string = req.query.bookshelf_name as string;
 
     if (!bookshelfName) {
         res.status(400).send('Provide valid book shelf id.');
     }
-    const userId = 1;
 
     console.log(`GET /api/books - bookshelf name: ${bookshelfName}`)
 
