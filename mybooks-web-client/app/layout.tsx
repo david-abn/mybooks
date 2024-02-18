@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import NavBar from './ui/navbar'
 import { GoogleOAuthProvider } from '@react-oauth/google'
-
+import { Providers } from './context/auth-provider';
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -22,11 +22,12 @@ export default async function RootLayout({
     <>
       <html lang="en">
         <body className={inter.className}>
-          <GoogleOAuthProvider clientId="278040362433-vigipnck7ki9mllo4djqg52gu6ogm8pe.apps.googleusercontent.com">
-
+          {/* <GoogleOAuthProvider clientId="278040362433-vigipnck7ki9mllo4djqg52gu6ogm8pe.apps.googleusercontent.com"> */}
+          <Providers>
             <NavBar />
             {children}
-          </GoogleOAuthProvider>
+          </Providers>
+          {/* </GoogleOAuthProvider> */}
         </body>
       </html>
     </>

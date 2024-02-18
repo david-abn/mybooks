@@ -16,6 +16,12 @@ const bookshelfValidationRules = [
  * @param {array} bookValidationRules - Rules to sanitize and validate user input
  */
 router.post('/new_bookshelf', bookshelfValidationRules, async (req: Request, res: Response) => {
+    const userId = req.session.user?.userId;
+    console.log('ss', userId);
+    if (!userId) {
+        return res.status(401).send('Unauthorized');
+    }
+
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -28,7 +34,7 @@ router.post('/new_bookshelf', bookshelfValidationRules, async (req: Request, res
     await prisma.user_bookshelf.create({
         data: {
             bookshelf_name: bookshelfName,
-            user_id: 1, // change this
+            user_id: userId
         }
     })
         .then(async (result) => {
@@ -47,14 +53,18 @@ router.post('/new_bookshelf', bookshelfValidationRules, async (req: Request, res
  * GET request for retrieving all bookshelves for a user.
  */
 router.get('/', async (req: Request, res: Response) => {
+    const userId = req.session.user?.userId;
+    if (!userId) {
+        return res.status(401).send('Unauthorized');
+    }
+
     console.log(`GET /api/bookshelf/bookshelves`);
     const result = await prisma.user_bookshelf.findMany({
         where: {
-            user_id: 1, // change this
+            user_id: userId
         }
     })
-await prisma.$disconnect;
     res.status(200).json(result);
-
 })
+
 export default router;
