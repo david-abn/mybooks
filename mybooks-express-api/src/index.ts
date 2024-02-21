@@ -40,12 +40,12 @@ app.use(
     )
   })
 );
+
 app.use((_, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://localhost:3000');
   res.header('Access-Control-Allow-Headers', 'content-type');
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
-  // res.header('Access-Control-Expose-Headers', 'Set-Cookie');
+  res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE');
   next();
 })
 

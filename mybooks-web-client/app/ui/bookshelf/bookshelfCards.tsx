@@ -1,4 +1,8 @@
+'use client';
+import { useRouter } from 'next/navigation'
+
 export default function BookshelfCards({ bookshelf }: any): JSX.Element {
+    const router = useRouter();
     return (
         <>
             <div className="flex flex-row w-3/4 space-x-20 justify-center bg-white border border-t-4 border-t-blue-600 shadow-sm rounded-xl dark:bg-slate-900 dark:border-gray-700 dark:border-t-blue-500 dark:shadow-slate-700/[.7]">
@@ -11,9 +15,9 @@ export default function BookshelfCards({ bookshelf }: any): JSX.Element {
                         {bookshelf?.bookshelf_name}
                     </p>
 
-                    <a className="mt-3 inline-flex items-center gap-x-1 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600" href="#">
+                    <button className="mt-3 inline-flex items-center gap-x-1 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600" onClick={() => router.push(`/bookshelf/${bookshelf.bookshelf_name}`)}>
                         View Books
-                    </a>
+                    </button>
                 </div>
             </div>
             <br />

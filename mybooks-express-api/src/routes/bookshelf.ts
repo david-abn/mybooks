@@ -13,13 +13,12 @@ const bookshelfValidationRules = [
 
 /**
  * POST request for adding a new bookshelf.
- * @param {array} bookValidationRules - Rules to sanitize and validate user input
+ * @param {array} bookshelfValidationRules - Rules to sanitize and validate user input
  */
 router.post('/new_bookshelf', bookshelfValidationRules, async (req: Request, res: Response) => {
     const userId = req.session.user?.userId;
-    console.log('ss', userId);
     if (!userId) {
-        return res.status(401).send('Unauthorized');
+        return res.status(401).json({ "Error": "Unauthorized" });
     }
 
     const errors = validationResult(req);
@@ -31,22 +30,27 @@ router.post('/new_bookshelf', bookshelfValidationRules, async (req: Request, res
     const bookshelfName: string = req.body.bookshelfName;
     console.log(`POST /api/bookshelf/new_bookshelf - Bookshelf name: ${bookshelfName}`);
 
-    await prisma.user_bookshelf.create({
-        data: {
+    await prisma.user_bookshelf.upsert({
+        where: {
+            user_id_bookshelf_name: {
+                user_id: userId,
+                bookshelf_name: bookshelfName
+            }
+        },
+        update: {},
+        create: {
+            user_id: userId,
             bookshelf_name: bookshelfName,
-            user_id: userId
         }
     })
         .then(async (result) => {
             console.log(`Bookshelf created successfully: \n ${JSON.stringify(result)}`);
-            res.status(201).send(`Bookshelf created successfully: ${bookshelfName}.`)
+            return res.status(201).json({ "Created": bookshelfName })
         })
         .catch(async (e) => {
             console.error(e)
-            res.status(500).send('Error creating bookshelf');
+            return res.status(500).json({ "Error": "Error creating bookshelf" });
         });
-    await prisma.$disconnect;
-
 });
 
 /**

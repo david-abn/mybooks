@@ -1,12 +1,18 @@
 'use client';
-import { useState, ChangeEvent } from "react";
+import React, { useState } from "react";
 
 interface BookshelfChildProps {
-    handleCreateBookshelf: createBookshelfType
+    handleCreateBookshelf: createBookshelfType,
+    // showModal: boolean,
+    // setShowModal: (showModal: boolean) => void
 }
 
-export default function CreateBookshelfModal(props: BookshelfChildProps): JSX.Element {
-    const [showModal, setShowModal] = useState(false);
+interface ChildComponentProps {
+    showModal: boolean;
+    setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export default function CreateBookshelfModal({ handleCreateBookshelf, showModal, toggleModal }: any): JSX.Element {
 
     const [bookshelfName, setBookshelfName] = useState<string>("");
 
@@ -15,7 +21,7 @@ export default function CreateBookshelfModal(props: BookshelfChildProps): JSX.El
             <button
                 className="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 type="button"
-                onClick={() => setShowModal(true)}
+                onClick={toggleModal}
             >
                 Add Bookshelf
             </button>
@@ -28,7 +34,7 @@ export default function CreateBookshelfModal(props: BookshelfChildProps): JSX.El
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add Bookshelf</h3>
                                     <button
                                         className="bg-transparent border-0 text-black float-right"
-                                        onClick={() => setShowModal(false)}
+                                        onClick={toggleModal}
                                     >
                                         <span className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
                                             x
@@ -47,14 +53,14 @@ export default function CreateBookshelfModal(props: BookshelfChildProps): JSX.El
                                     <button
                                         className="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
                                         type="button"
-                                        onClick={() => setShowModal(false)}
+                                        onClick={toggleModal}
                                     >
                                         Close
                                     </button>
                                     <button
                                         className="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                                         type="button"
-                                        onClick={() => props.handleCreateBookshelf(bookshelfName)}
+                                        onClick={() => handleCreateBookshelf(bookshelfName)}
                                     >
                                         Create
                                     </button>

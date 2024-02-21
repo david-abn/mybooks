@@ -151,7 +151,7 @@ async function getBookshelfId(bookshelfName: string, userId: number) {
 
 /**
  * Retrieve all books inside a bookshelf
- * @query_param {number} bookshelf_name - bookshelf name to retrieve books from
+ * @query_param {string} bookshelf_name - bookshelf name to retrieve books from
  */
 router.get('/', async (req: Request, res: Response) => {
     const userId = req.session.user?.userId;
@@ -173,6 +173,9 @@ router.get('/', async (req: Request, res: Response) => {
         const books_results = await prisma.bookshelf_books.findMany({
             where: {
                 bookshelf_id: bookshelfId,
+            },
+            include: {
+                books: true
             }
         })
 
@@ -182,7 +185,6 @@ router.get('/', async (req: Request, res: Response) => {
         console.error(`Unable to retrieve books using ${bookshelfId}`)
         res.status(500).send('Error retrieving books');
     }
-    await prisma.$disconnect;
 });
 
 // router.put('/update_book/:book_id', (req: Request, res: Response) => {

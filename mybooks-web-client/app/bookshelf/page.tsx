@@ -7,18 +7,18 @@ import CreateBookshelfModal from "../ui/bookshelf/createBookshelfModal";
 export default function Bookshelf() {
     // Fetch user's bookshelves
     const { user } = useAuth();
-
+    const [showModal, setShowModal] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [data, setData] = useState<BookshelvesData[]>();
+
     const fetchBookshelves = async () => {
 
         try {
-            const dashboardResponse = await fetch('https://localhost:4000/api/bookshelf', {
+            const bookshelvesResponse = await fetch('https://localhost:4000/api/bookshelf', {
                 credentials: 'include'
             })
-            const dashboardData = await dashboardResponse.json();
-            console.log(dashboardData);
-            setData(dashboardData);
+            const bookshelfData = await bookshelvesResponse.json();
+            setData(bookshelfData);
         } catch (err) {
             console.error('Unable to fetch dashboard data:', err);
         }
@@ -30,6 +30,7 @@ export default function Bookshelf() {
             const bookshelfCreateRequest = await fetch('https://localhost:4000/api/bookshelf/new_bookshelf', {
                 credentials: 'include',
                 method: 'POST',
+                mode: 'cors',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -37,25 +38,39 @@ export default function Bookshelf() {
                     JSON.stringify({ "bookshelfName": bookshelfName })
             });
 
-            const bookshelfCreateResponse = await bookshelfCreateRequest.json();
-            console.log(bookshelfCreateResponse);
+            if (bookshelfCreateRequest.ok) {
+                fetchBookshelves();
+            }
+
+            setShowModal(false);
         }
         catch (err) {
             console.error(err);
+            // setShowModal(false);
         }
     }
 
+    // Function to toggle modal state
+    const toggleModal = () => {
+        setShowModal(!showModal);
+    };
 
     useEffect(() => {
         fetchBookshelves();
-    }, [user]);
+    }, []);
 
     return (
         <>
             {user &&
                 <h1 className="mb-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-5xl dark:text-white">{user.user_first_name}'s Bookshelves</h1>
             }
-
+            {!loading &&
+                <CreateBookshelfModal
+                    handleCreateBookshelf={handleCreateBookshelf}
+                    showModal={showModal}
+                    toggleModal={toggleModal}
+                />
+            } <br />
             {loading ? <span>Loading (change this)</span> :
                 data ? data.map((bookshelf) => {
                     console.log('bookshelf map', bookshelf);
@@ -65,9 +80,6 @@ export default function Bookshelf() {
                     <h1>No bookshelves found</h1>
             }
 
-            {!loading &&
-                <CreateBookshelfModal handleCreateBookshelf={handleCreateBookshelf} />
-            }
 
 
 
