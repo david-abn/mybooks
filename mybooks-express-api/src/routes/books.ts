@@ -11,12 +11,12 @@ const bookStatusOptions = /\b(reading|finished|not_started)\b/;
 const bookValidationRules = [
     body('title').notEmpty().escape().withMessage('Title is required.'),
     body('release_year').escape().isNumeric().withMessage('Release year should be number.'),
-    body('author').isString().withMessage("Author should be a string."),
+    body('author').isString().escape().withMessage("Author should be a string."),
     body('book_thoughts').isString().escape().withMessage('Book Thoughts should be a string'),
-    body('book_status').isString().matches(bookStatusOptions).withMessage('Status should be a string and be one of reading|finished|plan to read'),
+    body('book_status').isString().escape().matches(bookStatusOptions).withMessage('Status should be a string and be one of reading|finished|plan to read'),
     body('thoughts_private').isBoolean().withMessage('Privacy should be a boolean.'),
     body('book_private').isBoolean().withMessage('Privacy should be a boolean.'),
-    body('bookshelf_id').isNumeric().withMessage('Bookshelf id should be a number.')
+    body('bookshelf_name').isString().escape().withMessage('Bookshelf name should be a string.')
 ];
 
 async function addBook(book: Book) {
@@ -63,7 +63,7 @@ router.post('/new_book', bookValidationRules, async (req: Request, res: Response
 
     const book: Book = {
         book_id: req.body.book_id,
-        bookshelf_id: parseInt(req.body.bookshelf_id),
+        bookshelf_name: req.body.bookshelf_name,
         author: req.body.author,
         title: req.body.title,
         subtitle: req.body.subtitle,
@@ -78,21 +78,34 @@ router.post('/new_book', bookValidationRules, async (req: Request, res: Response
     console.log(`POST /api/books/new_book \n 
     Book: ${JSON.stringify(book)}`);
 
+    // Get bookshelf id using the bookshelf name
+    const bookshelfId = await getBookshelfId(book.bookshelf_name, userId);
+
+    if (!bookshelfId) {
+        console.log(`Bookshelf ID not found. Bookshelf name: ${book.bookshelf_name}.`);
+        return res.status(404).send("Bookshelf not found.");
+    }
+
     await addBook(book);
 
     try {
-        await prisma.bookshelf_books.create({
-            data: {
-                book_id: book.book_id,
-                bookshelf_id: book.bookshelf_id,
-                user_id: userId,
-                book_thoughts: book.book_thoughts,
-                book_private: book.book_private,
-                thoughts_private: book.thoughts_private,
-                book_status: book.book_status,
-            },
+        // await prisma.bookshelf_books.upsert({
+        //     data: {
+        //         book_id: book.book_id,
+        //         bookshelf_id: bookshelfId,
+        //         user_id: userId,
+        //         book_thoughts: book.book_thoughts,
+        //         book_private: book.book_private,
+        //         thoughts_private: book.thoughts_private,
+        //         book_status: book.book_status,
+        //     },
+        // })
+        await prisma.bookshelf_books.upsert({
+            where: {
+                bookshelf_id: bookshelfId
+            }
         })
-        console.log(`Book added to bookshelf id ${book.bookshelf_id} successfully.`);
+        console.log(`Book added to bookshelf ${book.bookshelf_name} successfully.`);
 
     } catch (err) {
         if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -178,8 +191,15 @@ router.get('/', async (req: Request, res: Response) => {
                 books: true
             }
         })
+        // Flatten the books objects
+        const flattenedBooksResults = books_results.map(result => ({
+            ...result,
+            ...result.books
+        }));
 
-        res.status(200).json(books_results);
+        console.log(flattenedBooksResults);
+
+        res.status(200).json(flattenedBooksResults);
     }
     catch (err) {
         console.error(`Unable to retrieve books using ${bookshelfId}`)

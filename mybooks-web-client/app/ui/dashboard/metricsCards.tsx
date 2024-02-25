@@ -1,9 +1,7 @@
-'use client';
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
 
 export default function MetricsCards({ data }: any): JSX.Element {
-    const router = useRouter();
     return (
         <>
             {/* total books and bookshelves */}
@@ -27,9 +25,11 @@ export default function MetricsCards({ data }: any): JSX.Element {
                     <p className="text-6xl mt-2 text-gray-500 dark:text-gray-400">
                         {data?.booksCount._count.user_bookshelf}
                     </p>
-                    <a className="mt-3 inline-flex items-center gap-x-1 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600" href="/bookshelf" onClick={() => router.push('/bookshelf')}>
+                    <Link
+                        href='/bookshelf'
+                        className="mt-3 inline-flex items-center gap-x-1 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
                         View Bookshelves
-                    </a>
+                    </Link>
                 </div>
             </div>
             <br />

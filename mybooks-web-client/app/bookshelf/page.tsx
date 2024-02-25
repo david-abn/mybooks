@@ -50,7 +50,6 @@ export default function Bookshelf() {
         }
     }
 
-    // Function to toggle modal state
     const toggleModal = () => {
         setShowModal(!showModal);
     };
@@ -62,7 +61,8 @@ export default function Bookshelf() {
     return (
         <>
             {user &&
-                <h1 className="mb-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-5xl dark:text-white">{user.user_first_name}'s Bookshelves</h1>
+                <h1 className="mb-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-5xl dark:text-white">
+                    {user.user_first_name}&apos;s Bookshelves</h1>
             }
             {!loading &&
                 <CreateBookshelfModal
@@ -72,9 +72,8 @@ export default function Bookshelf() {
                 />
             } <br />
             {loading ? <span>Loading (change this)</span> :
-                data ? data.map((bookshelf) => {
-                    console.log('bookshelf map', bookshelf);
-                    return <BookshelfCards bookshelf={bookshelf} />
+                data ? data.map((bookshelf, index) => {
+                    return <BookshelfCards key={index} bookshelf={bookshelf} />
                 })
                     :
                     <h1>No bookshelves found</h1>

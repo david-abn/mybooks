@@ -3,27 +3,45 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/auth-context";
 import { usePathname } from 'next/navigation'
 import BooksCards from "@/app/ui/books/booksCards";
+import Link from "next/link";
 
 export default function Books() {
     const { user } = useAuth();
     const [loading, setLoading] = useState<boolean>(true);
-    const [booksData, setBooksData] = useState([]);
+    const [booksData, setBooksData] = useState<BookData[]>([]);
+    const [showModal, setShowModal] = useState<boolean>(false);
 
     const bookshelfName = usePathname().split('/').pop();
+    if (!bookshelfName) {
+        console.error("Cannot retrieve bookshelf name");
+        return;
+    }
 
     const fetchBooks = async () => {
         try {
-            const booksResponse = await fetch(`https://localhost:4000/api/books?bookshelf_name=${bookshelfName}`, {
-                credentials: 'include'
-            })
+            const booksResponse = await fetch(
+                `https://localhost:4000/api/books?bookshelf_name=${bookshelfName}`,
+                {
+                    credentials: 'include'
+                })
             const booksDataJson = await booksResponse.json();
-            console.log(booksDataJson);
+
+            // Remove nested object 'books' which was flattened in the backend.
+            booksDataJson.forEach((book: any) => {
+                delete book.books;
+            })
+
             setBooksData(booksDataJson);
+
         } catch (err) {
             console.error('Unable to fetch dashboard data:', err);
         }
         setLoading(false);
     }
+
+    const toggleModal = () => {
+        setShowModal(!showModal);
+    };
 
     useEffect(() => {
         fetchBooks();
@@ -32,15 +50,28 @@ export default function Books() {
     return (
         <>
             {user &&
-                <h1 className="mb-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-5xl dark:text-white">{user.user_first_name}'s Books: {bookshelfName}</h1>
+                <h1 className="mb-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-5xl dark:text-white">{user.user_first_name}&apos;s Books: {bookshelfName}</h1>
             }
-            {loading ? <span>Loading (change this)</span> :
-                booksData ? booksData.map((book: any) => {
-                    console.log('bookshelf map', book);
-                    return <BooksCards book={book} />
-                })
-                    :
-                    <h1>No bookshelves found</h1>
+            <>
+                <Link
+                    href={`/bookshelf/${bookshelfName}/add_book`}
+                    className="max-w-32 block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    type="button"
+                >
+                    Add Book
+                </Link> <br /> </>
+            {
+                loading ? <span>Loading (change this)</span> :
+                    booksData ? booksData.map((book, index) => {
+                        return <BooksCards key={index}
+                            book={book}
+                            bookshelfName={bookshelfName}
+                            showModal={showModal}
+                            toggleModal={toggleModal}
+                        />
+                    })
+                        :
+                        <h1>No bookshelves found</h1>
             }
 
         </>

@@ -2,7 +2,6 @@
 import React, { useContext, useState } from 'react';
 import axios, { AxiosResponse } from "axios";
 import { useRouter } from 'next/navigation'
-import { setCookie, deleteCookie } from 'cookies-next';
 import { useAuth } from '../context/auth-context';
 import { CredentialResponse, GoogleLogin, googleLogout } from '@react-oauth/google';
 // interface AuthResponse {

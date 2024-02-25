@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { CredentialResponse, googleLogout } from '@react-oauth/google';
 import axios, { AxiosResponse } from "axios";
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 const AuthContext = createContext<AuthProviderContextType | null>(null);
 
 export type AuthProviderContextType = {
@@ -18,15 +18,39 @@ export const AuthProvider = ({
 }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
-
+    const pathname = usePathname();
     const router = useRouter();
+
     useEffect(() => {
-        // Check if user is authenticated on component mount
-        checkAuthStatus();
+        // Check if user is authenticated every 10 minutes
+        const intervalId = setInterval(() => {
+            checkAuthStatus();
+        }, 10 * 60 * 1000); // 10 minutes in milliseconds
+
+        return () => {
+            clearInterval(intervalId); // Clear interval on component unmount
+        };
+    }, []);
+
+    useEffect(() => {
+        const checkSignInStatus = async () => {
+            try {
+                const isSignedIn = await checkAuthStatus();
+                if (isSignedIn && pathname == "/") {
+                    // If user is signed in and on landing page, push to /dashboard page
+                    router.push('/dashboard');
+                }
+            } catch (error) {
+                console.error('Error checking signed-in status:', error);
+            }
+        };
+
+        checkSignInStatus(); // Call the function to check sign-in status on component mount
     }, []);
 
     const checkAuthStatus = async () => {
         try {
+            setLoading(true);
             const response = await fetch('https://localhost:4000/api/auth/check',
                 {
                     credentials: 'include'
@@ -34,8 +58,8 @@ export const AuthProvider = ({
             if (response.ok) {
                 // We want to show the log in button to user again.
                 const userResponse = await response.json();
-                console.log(userResponse);
                 setUser(userResponse.user);
+                return true;
             } else {
                 setUser(null);
                 router.push('/');
@@ -69,7 +93,6 @@ export const AuthProvider = ({
             console.log(err);
         }
 
-        console.log(user);
     };
 
     const signOut = async () => {

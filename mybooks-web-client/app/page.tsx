@@ -3,16 +3,14 @@ import Image from 'next/image'
 import Hero from './ui/landing/hero'
 import Features from './ui/landing/features'
 import { useAuth } from './context/auth-context';
-import { useRouter } from 'next/navigation';
-
+import Link from "next/link";
 
 export default function LandingPage() {
   const { user } = useAuth();
 
-  const router = useRouter()
 
   if (user) {
-    router.push('/dashboard')
+    <Link href="/dashboard"/>
   }
 
   return (

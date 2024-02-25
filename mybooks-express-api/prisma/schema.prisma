@@ -18,7 +18,7 @@ model books {
 }
 
 model bookshelf_books {
-  bookshelf_books_id Int            @id @default(autoincrement())
+  // bookshelf_books_id Int            @id @default(autoincrement())
   bookshelf_id       Int
   book_id            String         @unique @db.VarChar(100)
   user_id            Int
@@ -32,6 +32,7 @@ model bookshelf_books {
   user_bookshelf     user_bookshelf @relation(fields: [bookshelf_id], references: [bookshelf_id], onDelete: NoAction, onUpdate: NoAction, map: "bookshelf_books_user_bookshelf_FK")
   users              users          @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "bookshelf_books_users_FK")
 
+  @@id([book_id, bookshelf_id])
   @@index([book_id], map: "bookshelf_books_books_FK")
   @@index([user_id], map: "bookshelf_books_users_FK")
   @@index([bookshelf_id], map: "bookshelf_books_user_bookshelf_FK")
