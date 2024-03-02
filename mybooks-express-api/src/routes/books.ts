@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Book } from '../models/book';
-import { PrismaClient, Prisma, bookshelf_books } from '@prisma/client'
+import { PrismaClient, Prisma, BookshelfBooks } from '@prisma/client'
 import { body, validationResult } from 'express-validator';
 
 const prisma = new PrismaClient()
@@ -9,20 +9,21 @@ const router = Router();
 
 const bookStatusOptions = /\b(reading|finished|not_started)\b/;
 const bookValidationRules = [
-    body('title').notEmpty().escape().withMessage('Title is required.'),
-    body('release_year').escape().isNumeric().withMessage('Release year should be number.'),
-    body('author').isString().escape().withMessage("Author should be a string."),
-    body('book_thoughts').isString().escape().withMessage('Book Thoughts should be a string'),
-    body('book_status').isString().escape().matches(bookStatusOptions).withMessage('Status should be a string and be one of reading|finished|plan to read'),
+    body('title').notEmpty().withMessage('Title is required.'),
+    body('release_year').isNumeric().withMessage('Release year should be number.'),
+    body('author').isString().withMessage("Author should be a string."),
+    body('book_thoughts').isString().withMessage('Book Thoughts should be a string'),
+    body('book_status').isString().matches(bookStatusOptions).withMessage('Status should be a string and be one of reading|finished|plan to read'),
     body('thoughts_private').isBoolean().withMessage('Privacy should be a boolean.'),
     body('book_private').isBoolean().withMessage('Privacy should be a boolean.'),
-    body('bookshelf_name').isString().escape().withMessage('Bookshelf name should be a string.')
+    body('bookshelf_name').isString().withMessage('Bookshelf name should be a string.'),
+    body('google_books_link').isString().withMessage('Google Books link should be a string.')
 ];
 
 async function addBook(book: Book) {
     // Create book in books table
     try {
-        const bookAdded = await prisma.books.create({
+        const bookAdded = await prisma.book.create({
             data: {
                 book_id: book.book_id,
                 author: book.author,
@@ -58,6 +59,7 @@ router.post('/new_book', bookValidationRules, async (req: Request, res: Response
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
+        console.log(`Validation errors: ${JSON.stringify(errors)}`);
         return res.status(400).json({ errors: errors.array() });
     }
 
@@ -68,11 +70,12 @@ router.post('/new_book', bookValidationRules, async (req: Request, res: Response
         title: req.body.title,
         subtitle: req.body.subtitle,
         description: req.body.description,
-        book_thoughts: req.body.thoughts,
+        book_thoughts: req.body.book_thoughts,
         release_year: parseInt(req.body.release_year),
         book_status: req.body.book_status,
         book_private: req.body.book_private,
         thoughts_private: req.body.thoughts_private,
+        google_books_link: req.body.google_books_link,
     };
 
     console.log(`POST /api/books/new_book \n 
@@ -89,22 +92,31 @@ router.post('/new_book', bookValidationRules, async (req: Request, res: Response
     await addBook(book);
 
     try {
-        // await prisma.bookshelf_books.upsert({
-        //     data: {
-        //         book_id: book.book_id,
-        //         bookshelf_id: bookshelfId,
-        //         user_id: userId,
-        //         book_thoughts: book.book_thoughts,
-        //         book_private: book.book_private,
-        //         thoughts_private: book.thoughts_private,
-        //         book_status: book.book_status,
-        //     },
-        // })
-        await prisma.bookshelf_books.upsert({
+        await prisma.bookshelfBooks.upsert({
             where: {
-                bookshelf_id: bookshelfId
+                book_id_bookshelf_id: {
+                    book_id: book.book_id,
+                    bookshelf_id: bookshelfId
+                }
+            },
+            update: {
+                book_thoughts: book.book_thoughts ? book.book_thoughts : "",
+                book_private: book.book_private,
+                thoughts_private: book.thoughts_private,
+                book_status: book.book_status
+            },
+            create: {
+                book_id: book.book_id,
+                bookshelf_id: bookshelfId,
+                bookshelf_name: book.bookshelf_name,
+                user_id: userId,
+                book_thoughts: book.book_thoughts ? book.book_thoughts : "",
+                book_private: book.book_private,
+                thoughts_private: book.thoughts_private,
+                book_status: book.book_status,
+                google_books_link: book.google_books_link,
             }
-        })
+        });
         console.log(`Book added to bookshelf ${book.bookshelf_name} successfully.`);
 
     } catch (err) {
@@ -124,19 +136,29 @@ router.post('/new_book', bookValidationRules, async (req: Request, res: Response
  * Retrieves all books by user 
  * @query_param {number} user_id - User ID to retrieve books from
  */
-router.get('/user', async (req: Request, res: Response) => {
-    const userId = req.query.user_id;
-    const result = await prisma.$queryRaw`SELECT * from bookshelf_books where user_id = ${userId}`
-        .then(async () => {
-            console.log('Returned user books successfully.')
-        })
-        .catch(async (e) => {
-            console.error(e);
-            console.log('Error retrieving user books');
-        })
+router.get('/', async (req: Request, res: Response) => {
+    const userId = req.session.user?.userId;
 
-    console.log(result);
-    res.json(result);
+    try {
+        const books = await prisma.bookshelfBooks.findMany({
+            where: {
+                user_id: userId
+            },
+            include: {
+                book: true
+            }
+        })
+        const flattenedBooksResults = books.map(result => ({
+            ...result,
+            ...result.book
+        }));
+
+        console.log(flattenedBooksResults);
+        res.status(200).json(flattenedBooksResults);
+    } catch (err) {
+        console.error(`Unable to retrieve books. ${err}`);
+        return res.status(500).send('Unable to retrieve books.');
+    }
 })
 
 /**
@@ -146,7 +168,7 @@ router.get('/user', async (req: Request, res: Response) => {
  */
 async function getBookshelfId(bookshelfName: string, userId: number) {
     try {
-        const bookshelfId = await prisma.user_bookshelf.findFirst({
+        const bookshelfId = await prisma.userBookshelf.findFirst({
             where: {
                 user_id: userId,
                 bookshelf_name: bookshelfName,
@@ -183,18 +205,18 @@ router.get('/', async (req: Request, res: Response) => {
     const bookshelfId = await getBookshelfId(bookshelfName, userId);
 
     try {
-        const books_results = await prisma.bookshelf_books.findMany({
+        const books_results = await prisma.bookshelfBooks.findMany({
             where: {
                 bookshelf_id: bookshelfId,
             },
             include: {
-                books: true
+                book: true
             }
         })
         // Flatten the books objects
         const flattenedBooksResults = books_results.map(result => ({
             ...result,
-            ...result.books
+            ...result.book
         }));
 
         console.log(flattenedBooksResults);

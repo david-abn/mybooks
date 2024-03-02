@@ -78,10 +78,6 @@ export default function Bookshelf() {
                     :
                     <h1>No bookshelves found</h1>
             }
-
-
-
-
         </>
     )
 }

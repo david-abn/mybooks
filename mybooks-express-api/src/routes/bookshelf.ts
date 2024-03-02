@@ -30,7 +30,7 @@ router.post('/new_bookshelf', bookshelfValidationRules, async (req: Request, res
     const bookshelfName: string = req.body.bookshelfName;
     console.log(`POST /api/bookshelf/new_bookshelf - Bookshelf name: ${bookshelfName}`);
 
-    await prisma.user_bookshelf.upsert({
+    await prisma.userBookshelf.upsert({
         where: {
             user_id_bookshelf_name: {
                 user_id: userId,
@@ -63,7 +63,7 @@ router.get('/', async (req: Request, res: Response) => {
     }
 
     console.log(`GET /api/bookshelf/bookshelves`);
-    const result = await prisma.user_bookshelf.findMany({
+    const result = await prisma.userBookshelf.findMany({
         where: {
             user_id: userId
         }

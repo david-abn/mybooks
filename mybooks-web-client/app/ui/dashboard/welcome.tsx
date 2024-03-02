@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth } from '@/app/context/auth-context';
 import MetricsCards from './metricsCards';
 
-export default function Welcome(props: { loading: boolean; data: BookData | undefined; }) {
+export default function Welcome(props: { loading: boolean; data: BookMetricsData | undefined; }) {
     const { user } = useAuth();
 
     return (

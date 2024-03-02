@@ -32,8 +32,10 @@ export default function Home() {
   }, [])
   return (
     <>
+    { data && 
+    
       <Welcome data={data} loading={loading} />
-
+    }
       {/* Display total number of books in bookshelf.
     Display number of books read
     Display number of books not started */}

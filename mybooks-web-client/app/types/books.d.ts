@@ -24,6 +24,7 @@ declare type BookData = {
     book_private: boolean;
     thoughts_private: boolean;
     bookshelf_name: string;
+    google_books_link: string;
 }
 
 declare type BookSearchResults = {
@@ -52,9 +53,12 @@ declare type BookSearchResults = {
 //     bookshelf_name: string;
 // }
 
-declare type SelectBookModalProps = {
+declare type BooksCardsProps = {
     bookshelfName: string;
-    book: BookData
+    book: BookData,
+}
+
+declare type SelectBookModalProps = BooksCardsProps & {
     showModal: boolean;
     toggleModal: () => void;
 }

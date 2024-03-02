@@ -25,7 +25,7 @@ router.get('/', async (req: Request, res: Response) => {
             }
         }
     })
-    let booksStatusCount = await prisma.bookshelf_books.groupBy({
+    let booksStatusCount = await prisma.bookshelfBooks.groupBy({
         by: "book_status",
         _count: {
             book_status: true,

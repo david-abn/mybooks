@@ -9,9 +9,8 @@ export default function Books() {
     const { user } = useAuth();
     const [loading, setLoading] = useState<boolean>(true);
     const [booksData, setBooksData] = useState<BookData[]>([]);
-    const [showModal, setShowModal] = useState<boolean>(false);
 
-    const bookshelfName = usePathname().split('/').pop();
+    const bookshelfName = usePathname().split('/').pop()?.replace(/%20/g, " ");
     if (!bookshelfName) {
         console.error("Cannot retrieve bookshelf name");
         return;
@@ -39,10 +38,6 @@ export default function Books() {
         setLoading(false);
     }
 
-    const toggleModal = () => {
-        setShowModal(!showModal);
-    };
-
     useEffect(() => {
         fetchBooks();
     }, []);
@@ -50,7 +45,8 @@ export default function Books() {
     return (
         <>
             {user &&
-                <h1 className="mb-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-5xl dark:text-white">{user.user_first_name}&apos;s Books: {bookshelfName}</h1>
+                <h1 className="mb-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-5xl dark:text-white">
+                    {user.user_first_name}&apos;s Books: {bookshelfName}</h1>
             }
             <>
                 <Link
@@ -66,8 +62,6 @@ export default function Books() {
                         return <BooksCards key={index}
                             book={book}
                             bookshelfName={bookshelfName}
-                            showModal={showModal}
-                            toggleModal={toggleModal}
                         />
                     })
                         :
