@@ -84,15 +84,14 @@ export default function BooksCards(props: BooksCardsProps): JSX.Element {
                     Edit Info
                 </button>
 
-                {showModal && <SelectBookModal
-                    bookshelfName={props.bookshelfName}
-                    book={props.book}
-                    showModal={showModal}
-                    toggleModal={toggleModal}
 
-                />}
             </div>
-
+            {showModal && <SelectBookModal
+                bookshelfName={props.bookshelfName}
+                book={props.book}
+                showModal={showModal}
+                toggleModal={toggleModal}
+            />}
             <br />
         </>
     )

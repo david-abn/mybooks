@@ -4,27 +4,16 @@ import axios, { AxiosResponse } from "axios";
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/auth-context';
 import { CredentialResponse, GoogleLogin, googleLogout } from '@react-oauth/google';
-// interface AuthResponse {
-//     sess: string;
-//     user: User;
-// }
-interface User {
-    _id: string;
-    name: string;
-    email: string;
-    avatar: string;
-}
+
 export default function LoginButton() {
 
     const { user, signIn, signOut, loading } = useAuth();
     const router = useRouter();
-
     return (
         <>
             {!user && !loading && (
                 <GoogleLogin
                     onSuccess={credentialResponse => {
-                        console.log(credentialResponse);
                         signIn(credentialResponse);
                         router.push('/dashboard');
                     }}

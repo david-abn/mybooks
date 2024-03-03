@@ -63,7 +63,7 @@ router.post("/signin", async (req: Request, res: Response) => {
         userEmail: user.user_email,
     }
     console.log(req.session);
-    res.status(200).send(req.session.user);
+    res.status(200).send(user);
 
 });
 

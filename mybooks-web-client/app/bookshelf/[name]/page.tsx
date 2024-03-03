@@ -4,12 +4,14 @@ import { useAuth } from "@/app/context/auth-context";
 import { usePathname } from 'next/navigation'
 import BooksCards from "@/app/ui/books/booksCards";
 import Link from "next/link";
+import { useBooksDataContext } from "@/app/context/bookdata-context";
+import config from "@/app/utils/config";
 
 export default function Books() {
     const { user } = useAuth();
     const [loading, setLoading] = useState<boolean>(true);
-    const [booksData, setBooksData] = useState<BookData[]>([]);
-
+    const { booksData, setBooksData } = useBooksDataContext();
+    const apiUrl = config.apiUrl;
     const bookshelfName = usePathname().split('/').pop()?.replace(/%20/g, " ");
     if (!bookshelfName) {
         console.error("Cannot retrieve bookshelf name");
@@ -19,7 +21,7 @@ export default function Books() {
     const fetchBooks = async () => {
         try {
             const booksResponse = await fetch(
-                `https://localhost:4000/api/books?bookshelf_name=${bookshelfName}`,
+                `${apiUrl}/api/books?bookshelf_name=${bookshelfName}`,
                 {
                     credentials: 'include'
                 })
@@ -58,7 +60,7 @@ export default function Books() {
                 </Link> <br /> </>
             {
                 loading ? <span>Loading (change this)</span> :
-                    booksData ? booksData.map((book, index) => {
+                    booksData ? booksData?.map((book, index) => {
                         return <BooksCards key={index}
                             book={book}
                             bookshelfName={bookshelfName}

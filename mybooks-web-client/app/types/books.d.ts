@@ -10,6 +10,7 @@ declare type BookMetricsData = {
         finished: number,
         not_started: number
     }
+
 }
 
 declare type BookData = {

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/auth-context";
 import BookshelfCards from "../ui/bookshelf/bookshelfCards";
 import CreateBookshelfModal from "../ui/bookshelf/createBookshelfModal";
+import config from "../utils/config";
 
 export default function Bookshelf() {
     // Fetch user's bookshelves
@@ -10,11 +11,11 @@ export default function Bookshelf() {
     const [showModal, setShowModal] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [data, setData] = useState<BookshelvesData[]>();
-
+    const apiUrl = config.apiUrl;
+    
     const fetchBookshelves = async () => {
-
         try {
-            const bookshelvesResponse = await fetch('https://localhost:4000/api/bookshelf', {
+            const bookshelvesResponse = await fetch(`${apiUrl}/api/bookshelf`, {
                 credentials: 'include'
             })
             const bookshelfData = await bookshelvesResponse.json();
@@ -27,7 +28,7 @@ export default function Bookshelf() {
     }
     const handleCreateBookshelf: createBookshelfType = async (bookshelfName) => {
         try {
-            const bookshelfCreateRequest = await fetch('https://localhost:4000/api/bookshelf/new_bookshelf', {
+            const bookshelfCreateRequest = await fetch(`${apiUrl}/api/bookshelf/new_bookshelf`, {
                 credentials: 'include',
                 method: 'POST',
                 mode: 'cors',

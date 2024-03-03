@@ -2,32 +2,33 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/auth-context";
 import BooksCards from "../ui/books/booksCards";
+import { useBooksDataContext } from "../context/bookdata-context";
+import config from "../utils/config";
 
 export default function ViewBooks() {
     // Fetch user's bookshelves
     const { user } = useAuth();
     const [showModal, setShowModal] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-    const [booksData, setBooksData] = useState<BookData[]>();
+    const { booksData, setBooksData } = useBooksDataContext();
 
+    const apiUrl = config.apiUrl;
+    
     const fetchBooks = async () => {
 
         try {
-            const booksResponse = await fetch('https://localhost:4000/api/books', {
+            const booksResponse = await fetch(`${apiUrl}/api/books`, {
                 credentials: 'include'
             })
             const booksData = await booksResponse.json();
             setBooksData(booksData);
         } catch (err) {
             console.error('Unable to fetch books data:', err);
+            setBooksData([]);
         }
         setLoading(false);
 
     }
-
-    const toggleModal = () => {
-        setShowModal(!showModal);
-    };
 
     useEffect(() => {
         fetchBooks();
@@ -41,7 +42,7 @@ export default function ViewBooks() {
             }
 
             {loading ? <span>Loading (change this)</span> :
-                booksData ? booksData.map((book, index) => {
+                booksData ? booksData?.map((book, index) => {
                     return <BooksCards key={index}
                         book={book}
                         bookshelfName={book.bookshelf_name}

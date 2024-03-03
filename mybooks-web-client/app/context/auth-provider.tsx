@@ -2,6 +2,7 @@
 
 import { AuthProvider } from './auth-context';
 import { GoogleOAuthProvider } from '@react-oauth/google'
+import { BooksDataProvider } from './bookdata-context';
 export function Providers({
   children,
 }: {
@@ -11,7 +12,9 @@ export function Providers({
   return (
     <AuthProvider >
       <GoogleOAuthProvider clientId="278040362433-vigipnck7ki9mllo4djqg52gu6ogm8pe.apps.googleusercontent.com">
-        {children}
+        <BooksDataProvider>
+          {children}
+        </BooksDataProvider>
       </GoogleOAuthProvider>
     </AuthProvider>
   );

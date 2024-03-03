@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { CredentialResponse, googleLogout } from '@react-oauth/google';
 import axios, { AxiosResponse } from "axios";
 import { usePathname, useRouter } from 'next/navigation';
+import config from '../utils/config';
 const AuthContext = createContext<AuthProviderContextType | null>(null);
 
 export type AuthProviderContextType = {
@@ -20,6 +21,7 @@ export const AuthProvider = ({
     const [loading, setLoading] = useState(true);
     const pathname = usePathname();
     const router = useRouter();
+    const apiUrl = config.apiUrl;
 
     useEffect(() => {
         // Check if user is authenticated every 10 minutes
@@ -51,7 +53,7 @@ export const AuthProvider = ({
     const checkAuthStatus = async () => {
         try {
             setLoading(true);
-            const response = await fetch('https://localhost:4000/api/auth/check',
+            const response = await fetch(`${apiUrl}/api/auth/check`,
                 {
                     credentials: 'include'
                 });
@@ -59,6 +61,7 @@ export const AuthProvider = ({
                 // We want to show the log in button to user again.
                 const userResponse = await response.json();
                 setUser(userResponse.user);
+                console.log(userResponse);
                 return true;
             } else {
                 setUser(null);
@@ -73,9 +76,8 @@ export const AuthProvider = ({
     };
 
     const signIn = async (res: CredentialResponse) => {
-        // deleteCookie('g_state');
         try {
-            const signInRequest = await fetch("https://localhost:4000/api/auth/signin", {
+            const signInRequest = await fetch(`${apiUrl}/api/auth/signin`, {
                 method: 'POST',
                 credentials: 'include',
                 mode: 'cors',
@@ -88,18 +90,19 @@ export const AuthProvider = ({
             const signInResponse = await signInRequest.json();
             setUser(signInResponse)
             setLoading(false);
+            console.log('Signed in successfully');
+
             router.push('/dashboard');
         } catch (err) {
-            console.log(err);
+            console.error("Issue with sign in: ", err);
         }
-
     };
 
     const signOut = async () => {
         await googleLogout();
         try {
             await axios.
-                get("https://localhost:4000/api/auth/signout", {
+                get(`${apiUrl}/api/auth/signout`, {
                     withCredentials: true
                 });
         }

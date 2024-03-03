@@ -1,8 +1,13 @@
 'use client';
+import { useBooksDataContext } from "@/app/context/bookdata-context";
+import config from "@/app/utils/config";
 import React, { useEffect, useState } from "react";
 
 
 export default function SelectBookModal(props: SelectBookModalProps): JSX.Element {
+
+    const { booksData, setBooksData } = useBooksDataContext();
+    const apiUrl = config.apiUrl;
     // Set default values for bookCreateData
     const [bookCreateData, setBookCreateData] = useState<BookData>({
         book_id: props.book.book_id,
@@ -29,9 +34,8 @@ export default function SelectBookModal(props: SelectBookModalProps): JSX.Elemen
     }
 
     const handleBookCreate = async () => {
-        console.log(props.book.bookshelf_name);
         try {
-            const bookshelfCreateRequest = await fetch('https://localhost:4000/api/books/new_book', {
+            const bookshelfCreateRequest = await fetch(`${apiUrl}/api/books/new_book`, {
                 credentials: 'include',
                 method: 'POST',
                 mode: 'cors',
@@ -46,19 +50,32 @@ export default function SelectBookModal(props: SelectBookModalProps): JSX.Elemen
                 alert("Book added/updated successfully");
                 const bookData = await bookshelfCreateRequest.json();
                 setBookCreateData(bookData);
-                props.toggleModal();
-            }
 
+                // Find the index of the book to update
+                const indexToUpdate = booksData.findIndex(book => book.book_id === bookCreateData.book_id);
+
+                if (indexToUpdate !== -1) {
+                    // Update the book data at the found index
+                    const newBooksData = [...booksData];
+                    newBooksData[indexToUpdate] = bookCreateData;
+
+                    // Set the updated booksData array back to the context
+                    setBooksData(newBooksData);
+
+                    props.toggleModal();
+                } else {
+                    console.error("Issue with finding book to update based on book ID.")
+                }
+
+            }
         }
         catch (err) {
             console.error(err);
-            // setShowModal(false);
         }
     }
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log('submit')
         // Form validation
         if (!bookCreateData.book_status) {
             alert("Please select a book status.");
@@ -73,7 +90,6 @@ export default function SelectBookModal(props: SelectBookModalProps): JSX.Elemen
     }
 
     useEffect(() => {
-        console.log(props.book);
         setBookCreateData(props.book);
     }, [props.book])
 
@@ -82,9 +98,9 @@ export default function SelectBookModal(props: SelectBookModalProps): JSX.Elemen
             {props.showModal ? (
                 <>
                     <div className="flex items-center overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-                        <div className="relative p-2 w-full max-w-md max-h-full">
+                        <div className="relative p-1 w-full max-w-md max-h-full">
                             <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
-                                <div className="flex items-start justify-between p-5 border-b border-solid border-gray-300 rounded-t ">
+                                <div className="flex items-start justify-between p-3 border-b border-solid border-gray-300 rounded-t ">
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add/Edit Book from {props.bookshelfName}</h3>
                                     <button
                                         className="bg-transparent border-0 text-black float-right"
@@ -96,7 +112,7 @@ export default function SelectBookModal(props: SelectBookModalProps): JSX.Elemen
                                     </button>
                                 </div>
                                 <div className="relative p-4 flex-auto">
-                                    <form className="p-4 md:p-5" onSubmit={handleSubmit}>
+                                    <form className="p-1 md:p-2" onSubmit={handleSubmit}>
                                         <label
                                             className="block mb-2 text-sm font-medium text-gray-900 dark:text-white" >
                                             Book Title
@@ -147,6 +163,7 @@ export default function SelectBookModal(props: SelectBookModalProps): JSX.Elemen
                                         <textarea id="book_thoughts"
                                             name="book_thoughts"
                                             value={bookCreateData.book_thoughts || ""}
+                                            rows={4}
                                             className="block mb-2 p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                             placeholder="Write your thoughts here..."
                                             onChange={handleChange}
@@ -182,7 +199,7 @@ export default function SelectBookModal(props: SelectBookModalProps): JSX.Elemen
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center justify-e4nd p-6 border-t border-solid border-blueGray-200 rounded-b">
+                                        <div className="flex items-center justify-end p-3 border-t border-solid border-blueGray-200 rounded-b">
                                             <button
                                                 className="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-900"
                                                 type="button"

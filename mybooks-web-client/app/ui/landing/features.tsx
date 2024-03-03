@@ -18,11 +18,9 @@ export default function Features() {
             </div>
           </div>
           <div className="p-6">
-            <h5 className="mb-4 text-lg font-semibold">Support 24/7</h5>
+            <h5 className="mb-4 text-lg font-semibold">Updates Coming</h5>
             <p>
-              Laudantium totam quas cumque pariatur at doloremque hic quos
-              quia eius. Reiciendis optio minus mollitia rerum labore
-              facilis inventore voluptatem ad, quae quia sint.
+              Look forward to new and improved features.
             </p>
           </div>
         </div>
@@ -43,9 +41,7 @@ export default function Features() {
           <div className="p-6">
             <h5 className="mb-4 text-lg font-semibold">Safe and solid</h5>
             <p>
-              Eum nostrum fugit numquam, voluptates veniam neque quibusdam
-              ullam aspernatur odio soluta, quisquam dolore animi mollitia a
-              omnis praesentium, expedita nobis!
+              Your data is safe and secure. Authentication is provided with Google.
             </p>
           </div>
         </div>
@@ -66,9 +62,7 @@ export default function Features() {
           <div className="p-6">
             <h5 className="mb-4 text-lg font-semibold">Extremely fast</h5>
             <p>
-              Enim cupiditate, minus nulla dolor cumque iure eveniet facere
-              ullam beatae hic voluptatibus dolores exercitationem? Facilis
-              debitis aspernatur amet nisi?
+              Built with the latest and greatest, expect it to be fast and reliable.
             </p>
           </div>
         </div>
