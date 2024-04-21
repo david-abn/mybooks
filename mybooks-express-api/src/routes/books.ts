@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Book } from '../models/book';
-import { PrismaClient, Prisma, BookshelfBooks } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 import { body, validationResult } from 'express-validator';
 
 const prisma = new PrismaClient()
@@ -36,7 +36,7 @@ async function addBook(book: Book) {
         console.log('Book created successfully');
         return bookAdded;
     }
-    catch (err) {
+    catch (err: any) {
         if (err instanceof Prisma.PrismaClientKnownRequestError) {
             if (err.code === 'P2002') {
                 console.log(`Book already exists. Book id: ${book.book_id}`);
@@ -119,7 +119,7 @@ router.post('/new_book', bookValidationRules, async (req: Request, res: Response
         });
         console.log(`Book added to bookshelf ${book.bookshelf_name} successfully.`);
 
-    } catch (err) {
+    } catch (err: any) {
         if (err instanceof Prisma.PrismaClientKnownRequestError) {
             if (err.code === 'P2002') {
                 console.log(`Book already exists in bookshelf. Book id: ${book.book_id}`);
@@ -148,7 +148,7 @@ router.get('/', async (req: Request, res: Response) => {
                 book: true
             }
         })
-        const flattenedBooksResults = books.map(result => ({
+        const flattenedBooksResults = books.map((result: any) => ({
             ...result,
             ...result.book
         }));
@@ -214,7 +214,7 @@ router.get('/', async (req: Request, res: Response) => {
             }
         })
         // Flatten the books objects
-        const flattenedBooksResults = books_results.map(result => ({
+        const flattenedBooksResults = books_results.map((result: any) => ({
             ...result,
             ...result.book
         }));

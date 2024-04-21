@@ -26,10 +26,14 @@ export default function SelectBookModal(props: SelectBookModalProps): JSX.Elemen
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value, type, checked } = e.target;
+        const { name, value, type } = e.target;
+        let checkedValue: boolean | undefined;
+        if (type === "checkbox" && e.target instanceof HTMLInputElement) {
+            checkedValue = e.target.checked;
+        }
         setBookCreateData(prev => ({
             ...prev,
-            [name]: type === "checkbox" ? checked : value
+            [name]: type === "checkbox" ? checkedValue : value
         }));
     }
 

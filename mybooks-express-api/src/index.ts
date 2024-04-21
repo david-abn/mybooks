@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction, Router } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import bookRoutes from './routes/books';
 import authRoutes from './routes/auth';
 import bookshelfRoutes from './routes/bookshelf';
@@ -41,8 +41,9 @@ app.use(
   })
 );
 
+
 app.use((_, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://localhost:3000');
+  res.header('Access-Control-Allow-Origin', 'https://mybooks.fit');
   res.header('Access-Control-Allow-Headers', 'content-type');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE');
@@ -57,6 +58,10 @@ app.use('/api/bookshelf', isAuthenticated, bookshelfRoutes);
 app.use('/api/profile', isAuthenticated, profileRoutes);
 app.use('/api/dashboard', isAuthenticated, dashboardRoutes);
 
+// Define a health check endpoint
+app.use('/health', (req, res) => {
+  res.status(200).send('OK'); // Respond with a status code of 200 and 'OK'
+});
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
@@ -64,16 +69,29 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 });
 const rootDir = dirname(process.argv[1]);
 
-https
-  .createServer(
-    {
-      key: fs.readFileSync(rootDir + "/server.key"),
-      cert: fs.readFileSync(rootDir + "/server.cert"),
-    },
-    app
-  )
-  .listen(port, function () {
-    console.log(
-      `Server running at https://localhost:${port}`
-    );
+if (process.env.NODE_ENV === 'production') {
+  app.listen(port, () => {
+    console.log(`Server is running on port https://localhost:${port}`);
   });
+}
+else {
+  console.log('NODE_ENV is not production. Running dev env');
+
+  const keyPath = rootDir + "/server.key";
+  const certPath = rootDir + "/server.cert";
+  if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+    https
+      .createServer(
+        {
+          key: fs.readFileSync(keyPath),
+          cert: fs.readFileSync(certPath),
+        },
+        app
+      )
+      .listen(port, function () {
+        console.log(
+          `Server running at https://localhost:${port}`
+        );
+      });
+  }
+}

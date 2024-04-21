@@ -4,3 +4,5 @@ node_modules
 server.key
 server.cert
 certificates
+dist/
+out/

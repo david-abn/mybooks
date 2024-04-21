@@ -40,6 +40,7 @@ export default function Books() {
         setLoading(false);
     }
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
         fetchBooks();
     }, []);
