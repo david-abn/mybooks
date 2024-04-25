@@ -1,29 +1,46 @@
+# Create Hosted Zone with DNS validated domain name
+
 resource "aws_route53_zone" "mybooks_hosted_zone" {
   name = var.domain_name
 }
 
 resource "aws_acm_certificate" "mybooks_certificate_request" {
+  # Cert must be in us-east-1 for cloudfront
+  provider                  = aws.aws-us-east-1
   domain_name               = var.domain_name
   subject_alternative_names = ["*.${var.domain_name}"]
   validation_method         = "DNS"
-
-  tags = {
-    Name : var.domain_name
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
-resource "aws_route53_record" "domain_validation_record" {
+resource "aws_route53_record" "mybooks_domain_dns_validation_arecord" {
+  for_each = {
+    for dvo in aws_acm_certificate.mybooks_certificate_request.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = aws_route53_zone.mybooks_hosted_zone.zone_id
+}
+
+resource "aws_route53_record" "mybooks_alb_arecord" {
+  name    = "api.mybooks.fit"
+  type    = "A"
   zone_id = aws_route53_zone.mybooks_hosted_zone.zone_id
-  name    = aws_acm_certificate.mybooks_certificate_request.domain_validation_options.0.resource_record_name
-  type    = aws_acm_certificate.mybooks_certificate_request.domain_validation_options.0.resource_record_type
-  records = [aws_acm_certificate.mybooks_certificate_request.domain_validation_options.0.resource_record_value]
+  alias {
+    name                   = aws_lb.ecs_alb.dns_name
+    zone_id                = aws_lb.ecs_alb.zone_id
+    evaluate_target_health = true
+  }
 }
 
-resource "aws_acm_certificate_validation" "mybooks_certificate_validation" {
+resource "aws_acm_certificate_validation" "mybooks_acm_validation" {
   certificate_arn         = aws_acm_certificate.mybooks_certificate_request.arn
-  validation_record_fqdns = [aws_route53_record.domain_validation_record.fqdn]
+  validation_record_fqdns = [for record in aws_route53_record.mybooks_domain_dns_validation_arecord : record.fqdn]
 }
