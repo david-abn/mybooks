@@ -15,3 +15,7 @@ resource "aws_secretsmanager_secret" "session_secret" {
   name        = "SESSION_SECRET"
   description = "Secret for ExpressJS session"
 }
+
+resource "aws_secretsmanager_secret" "db_password" {
+  name = "DATABASE_PASSWORD"
+}

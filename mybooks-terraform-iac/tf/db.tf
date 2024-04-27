@@ -1,11 +1,17 @@
+# data "aws_secretsmanager_random_password" "db_password" {
+#   secret_id     = aws_secretsmanager_secret.db_password.id
+#   password_length = 16
+#   exclude_characters = "\"@/\\"
+# }
+
 resource "aws_db_instance" "mybooks_rds_instance" {
   allocated_storage = 10
   storage_type      = "gp2"
   engine            = "mysql"
-  instance_class    = "db.t2.micro"
+  instance_class    = "db.t3.micro"
   identifier        = "mydb"
   username          = "dbuser"
-  password          = "dbpassword"
+  password          = aws_secretsmanager_random_password.db_password
 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.my_db_subnet_group.name
@@ -17,5 +23,4 @@ resource "aws_db_instance" "mybooks_rds_instance" {
   # Enable automated backups
   skip_final_snapshot       = false
   final_snapshot_identifier = "db-snap"
-
 }

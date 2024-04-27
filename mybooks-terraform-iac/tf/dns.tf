@@ -1,6 +1,5 @@
-# Create Hosted Zone with DNS validated domain name
-
-resource "aws_route53_zone" "mybooks_hosted_zone" {
+# Grab existing HZ from AWS
+data "aws_route53_zone" "mybooks_hosted_zone" {
   name = var.domain_name
 }
 
@@ -26,13 +25,13 @@ resource "aws_route53_record" "mybooks_domain_dns_validation_arecord" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.mybooks_hosted_zone.zone_id
+  zone_id         = data.aws_route53_zone.mybooks_hosted_zone.zone_id
 }
 
 resource "aws_route53_record" "mybooks_alb_arecord" {
   name    = "api.mybooks.fit"
   type    = "A"
-  zone_id = aws_route53_zone.mybooks_hosted_zone.zone_id
+  zone_id = data.aws_route53_zone.mybooks_hosted_zone.zone_id
   alias {
     name                   = aws_lb.ecs_alb.dns_name
     zone_id                = aws_lb.ecs_alb.zone_id
@@ -41,6 +40,7 @@ resource "aws_route53_record" "mybooks_alb_arecord" {
 }
 
 resource "aws_acm_certificate_validation" "mybooks_acm_validation" {
+  provider = aws.aws-us-east-1
   certificate_arn         = aws_acm_certificate.mybooks_certificate_request.arn
   validation_record_fqdns = [for record in aws_route53_record.mybooks_domain_dns_validation_arecord : record.fqdn]
 }

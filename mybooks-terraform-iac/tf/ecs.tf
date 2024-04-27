@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   container_definitions = jsonencode([
     {
       name      = "mybooks-backend-expressjs"
-      image     = "ecr image here"
+      image     = "${aws_ecr_repository.mybooks_ecr_repo.repository_url}:latest"
       cpu       = 256
       memory    = 512
       essential = true
@@ -68,7 +68,7 @@ resource "aws_ecs_service" "ecs_service" {
   task_definition = aws_ecs_task_definition.ecs_task_definition.arn
   desired_count   = 1
   network_configuration {
-    subnets         = [aws_subnet.public_subnets[*].id]
+    subnets         = aws_subnet.public_subnets[*].id
     security_groups = [aws_security_group.security_group.id]
   }
   force_new_deployment = true

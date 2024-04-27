@@ -27,7 +27,7 @@ variable "private_subnet_cidrs" {
 variable "azs" {
   type        = list(string)
   description = "Availability Zones"
-  default     = ["ap-southeast-2", "ap-southeast-1"]
+  default     = ["ap-southeast-2a", "ap-southeast-2b"]
 
 }
 
@@ -63,6 +63,7 @@ resource "null_resource" "dummy" {
 }
 
 output "container_env_vars" {
+  sensitive = true
   value = {
     PORT         = "443"
     DATABASE_URL = "mysql://${aws_db_instance.mybooks_rds_instance.username}:${aws_db_instance.mybooks_rds_instance.password}@${aws_db_instance.mybooks_rds_instance.endpoint}"

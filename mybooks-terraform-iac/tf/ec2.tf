@@ -15,7 +15,7 @@ resource "local_file" "private_key_file" {
 # Create Launch template for EC2 instance config
 resource "aws_launch_template" "ecs_lt" {
   name_prefix   = "ecs-template"
-  image_id      = "ami-062c116e449466e7f"
+  image_id      = "ami-012165a65c883b871" # Hardcoding the ECS-optimised AMI for AL2
   instance_type = "t3.micro"
   key_name      = aws_key_pair.ecs_instance_keypair.key_name
 
@@ -45,7 +45,7 @@ resource "aws_launch_template" "ecs_lt" {
 
 # Create auto scaling group for EC2 Instances
 resource "aws_autoscaling_group" "ecs_asg" {
-  vpc_zone_identifier = [aws_subnet.public_subnets[*].id]
+  vpc_zone_identifier = aws_subnet.public_subnets[*].id
   desired_capacity    = 1
   max_size            = 1
   min_size            = 0
@@ -68,7 +68,7 @@ resource "aws_lb" "ecs_alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.security_group.id]
-  subnets            = [aws_subnet.public_subnets[*].id]
+  subnets            = aws_subnet.public_subnets[*].id
   tags = {
     Name = "ecs-alb"
   }
