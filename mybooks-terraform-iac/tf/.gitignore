@@ -11,4 +11,3 @@
 # to change depending on the environment.
 *.tfvars
 *.tfvars.json
-ls -
