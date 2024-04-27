@@ -72,9 +72,6 @@ resource "aws_ecs_service" "ecs_service" {
     security_groups = [aws_security_group.security_group.id]
   }
   force_new_deployment = true
-  placement_constraints {
-    type = "memberOf"
-  }
   triggers = {
     redeployment = timestamp()
   }

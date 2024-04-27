@@ -1,8 +1,16 @@
-# data "aws_secretsmanager_random_password" "db_password" {
-#   secret_id     = aws_secretsmanager_secret.db_password.id
-#   password_length = 16
-#   exclude_characters = "\"@/\\"
-# }
+# Generate a random password
+resource "random_password" "db_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+}
+
+
+# Generate a random password and store it in the Secrets Manager secret
+resource "aws_secretsmanager_secret_version" "db_password_value" {
+  secret_id     = aws_secretsmanager_secret.db_password.id
+  secret_string = random_password.db_password.result
+}
 
 resource "aws_db_instance" "mybooks_rds_instance" {
   allocated_storage = 10
@@ -11,7 +19,7 @@ resource "aws_db_instance" "mybooks_rds_instance" {
   instance_class    = "db.t3.micro"
   identifier        = "mydb"
   username          = "dbuser"
-  password          = aws_secretsmanager_random_password.db_password
+  password          = aws_secretsmanager_secret_version.db_password_value.secret_string
 
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.my_db_subnet_group.name
